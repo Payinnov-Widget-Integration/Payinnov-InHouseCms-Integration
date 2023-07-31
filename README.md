@@ -74,7 +74,8 @@ Cms-PlugIn-->>-A: Ok
 
 ```mermaid
 sequenceDiagram
-Note left of Cms-PlugIn: Customer wants to pay with Payliko 
+actor A as Customer
+A->>+Cms-PlugIn: Customer wants to pay with Payliko 
 Cms-PlugIn->>+Gateway-Payliko: GET .../healthy
 Note right of Gateway-Payliko: Just check Payliko Cms Api Gateway is alive
 Gateway-Payliko-->>-Cms-PlugIn: Yes
@@ -88,6 +89,7 @@ Payliko-Widget->>+Wallet: Offer transaction to customer
 Wallet-->>Payliko-Widget: Customer reject transaction
 Payliko-Widget-->>Cms-PlugIn:Redirect to url Cancel Order
 Note left of Cms-PlugIn: If CMS is alive and can cancel Order
+Cms-PlugIn-->>A: xx
 
 Wallet-->>-Payliko-Widget:Customer validate transaction
 Payliko-Widget->>+Gateway-Payliko: Post OrderId, hashTransaction
@@ -95,6 +97,8 @@ Gateway-Payliko-->>-Payliko-Widget:Ok
 
 Payliko-Widget-->>-Cms-PlugIn: Redirect to url Confirm order
 Note left of Cms-PlugIn: If CMS is alive and can confirm Order
+Cms-PlugIn-->>-A: xx
+
 Cms-PlugIn->>+Gateway-Payliko: Widget connect to
 Gateway-Payliko-->>-Cms-PlugIn: AuthToken
 Cms-PlugIn->>+Gateway-Payliko: Get /pay/Order?hashTransaction
