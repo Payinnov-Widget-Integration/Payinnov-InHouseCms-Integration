@@ -40,7 +40,7 @@ To implement integration of Payinnov crypto currency paiment in a inhouse CMS yo
 
  https://tests.payliko-demo.fr/gateway-cms/documentation/static/index.html
 
- # Cms registring retailer in Payinnov ApiGateway
+ # Cms registering a retailer in Payinnov ApiGateway
 
 Use https://mermaid-js.github.io/mermaid-live-editor to update graphs.
 
@@ -57,8 +57,8 @@ Gateway-Payliko-->>-Cms-PlugIn: Yes
 
 Cms-PlugIn->>+Gateway-Payliko: POST .../user/ConnectRetailer
 Note right of Gateway-Payliko: Api Gateway chechek Retailer credential and user password
-Gateway-Payliko-->>-Cms-PlugIn: return { AuthToken, Api Secret Key }
-Cms-PlugIn->>+Cms storage: Save Retailer credential + Api Secret Key
+Gateway-Payliko-->>-Cms-PlugIn: return { AuthToken, ApiSecretKey }
+Cms-PlugIn->>+Cms storage: Save RetailerCredential + ApiSecretKey
 Cms storage-->>-Cms-PlugIn: Ok
 
 Cms-PlugIn->>+Gateway-Payliko: POST .../user/Retailer
@@ -76,51 +76,44 @@ Cms-PlugIn-->>-A: Ok
 sequenceDiagram
 actor A as Customer
 A->>+Cms-PlugIn: Customer wants to pay with Payliko 
-Cms-PlugIn->>+Gateway-Payliko: GET .../healthy
-Note right of Gateway-Payliko: Just check Payliko Cms Api Gateway is alive
-Gateway-Payliko-->>-Cms-PlugIn: Yes
+Cms-PlugIn->>+Gateway-Payliko: POST .../Ordre
+Note right of Gateway-Payliko: Https request is signed with ApiSecretKey
+Gateway-Payliko-->>-Cms-PlugIn: redirection WidgetUrl include JWT authentification
 
-Cms-PlugIn->>+Payliko-Widget: PlugIn redirect browser to Widget 
+Cms-PlugIn->>+Payliko-Widget: PlugIn redirect browser to WidgetUrl 
 
-Payliko-Widget->>+Gateway-Payliko: Get avaiable blochains/network/coins
-Gateway-Payliko-->>-Payliko-Widget: avaiable blochains/network/coins
+Payliko-Widget->>+Gateway-Payliko: GET available blockcahins, coins, rates
+Note right of Gateway-Payliko: Https request is authentified by JWT
+Gateway-Payliko-->>-Payliko-Widget: available blochains, coins, rates
 
 Payliko-Widget->>+Wallet: Offer transaction to customer
 Wallet-->>Payliko-Widget: Customer reject transaction
 Payliko-Widget-->>Cms-PlugIn:Redirect to url Cancel Order
 Note left of Cms-PlugIn: If CMS is alive and can cancel Order
-Cms-PlugIn-->>A: xx
+Cms-PlugIn->>+Payliko-Widget: POST .../CancelOrdre
+Note right of Gateway-Payliko: Https request is signed with ApiSecretKey
+Payliko-Widget->>-Cms-PlugIn:Ok
+Cms-PlugIn-->>A: redirected to order canceled page
 
 Wallet-->>-Payliko-Widget:Customer validate transaction
-Payliko-Widget->>+Gateway-Payliko: Post OrderId, hashTransaction
-Gateway-Payliko-->>-Payliko-Widget:Ok
+Payliko-Widget->>+Gateway-Payliko: POST hashTransaction to follow
+Note right of Gateway-Payliko: Https request is authentified by JWT
+Gateway-Payliko-->>Payliko-Widget:Ok
 
 Payliko-Widget-->>-Cms-PlugIn: Redirect to url Confirm order
-Note left of Cms-PlugIn: If CMS is alive and can confirm Order
-Cms-PlugIn-->>-A: xx
+Cms-PlugIn-->>-A: redirected to order confirmed page
 
-Cms-PlugIn->>+Gateway-Payliko: Widget connect to
-Gateway-Payliko-->>-Cms-PlugIn: AuthToken
-Cms-PlugIn->>+Gateway-Payliko: Get /pay/Order?hashTransaction
-Note left of Cms-PlugIn: use Bearer AuthToken in https headers
-Gateway-Payliko-->>-Cms-PlugIn: OrderId to check
-Note left of Cms-PlugIn: Cms confirm order & Cms send e-mail
-loop Cms
-        Cms-PlugIn->>Cms-PlugIn: Wait for payment validation
+loop Following blockchain transaction
+    Gateway-Payliko-->>Gateway-Payliko: Wait for transaction status changes
+
+    Note left of Gateway-Payliko: blockchain transaction status: initialised, mined, validated / canceled
+
+    loop until Cms-PlugIn HTTP response status code is 200
+        Gateway-Payliko->>+Cms-PlugIn: POST webHook
+        Note left of Gateway-Payliko: Https request is signed with ApiSecretKey
+        Cms-PlugIn-->>-Gateway-Payliko:HTTP response status code
+    end
+
+    deactivate Gateway-Payliko
 end
-loop Cms
-        Gateway-Payliko-->>Gateway-Payliko: Wait for transaction validation
-end
-
-Note left of Gateway-Payliko: Blockchain valide transaction
-Gateway-Payliko->>+Cms-PlugIn: GET url Validate payment
-Note left of Cms-PlugIn: If CMS is alive and can validate payment 
-
-Cms-PlugIn->>+Gateway-Payliko: Widget connect to
-Gateway-Payliko-->>-Cms-PlugIn: AuthToken
-Cms-PlugIn->>+Gateway-Payliko: Get /pay/Order?hashTransaction
-Note left of Cms-PlugIn: use Bearer AuthToken in https headers
-Gateway-Payliko-->>-Cms-PlugIn: OrderId to check
-Note left of Cms-PlugIn: Cms validate payment send e-mail
-Cms-PlugIn-->>-Gateway-Payliko:Ok
 ```
