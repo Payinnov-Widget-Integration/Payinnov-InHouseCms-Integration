@@ -117,3 +117,21 @@ loop Following blockchain transaction
     deactivate Gateway-Payliko
 end
 ```
+
+# How to compute/validate Signature
+
+## Signature function sample:
+
+| Language | Function |
+| :------- | :------ |
+| Php | <a href="./src/Php/signature.php"> signature.php</a> |
+| Javascript | <a href="./src/Js/signature.js"> signature.js</a> |
+| Typescript | <a href="./src/Ts/signature.ts"> signature.ts</a> |
+
+## Correct JSON data samples:
+
+All body parameters encoded in JSON string, realized in Javascript format, so that a signature can't be used for anything other than the HTTPS request being executed.
+
+<a href="./data/correct-JSON.stringify-1.json">Correct-JSON sample #1</a>
+
+<a href="./data/correct-JSON.stringify-2.json">Correct-JSON sample #2</a> 
