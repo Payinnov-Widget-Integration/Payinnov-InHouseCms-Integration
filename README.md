@@ -92,7 +92,7 @@ Payliko-Widget-->>Cms-PlugIn:Redirect to url Cancel Order
 Note left of Cms-PlugIn: If CMS is alive and can cancel Order
 Cms-PlugIn->>+Gateway-Payliko: POST .../CancelOrdre
 Note right of Gateway-Payliko: Https request is signed with ApiSecretKey
-Payliko-Widget->>-Cms-PlugIn:Ok
+Gateway-Payliko->>-Cms-PlugIn:Ok
 Cms-PlugIn-->>A: redirected to order canceled page
 
 Wallet-->>-Payliko-Widget:Customer validate transaction
